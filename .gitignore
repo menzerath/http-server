@@ -13,3 +13,7 @@ hs_err_pid*
 
 # HTTP-Server Log
 log.txt
+
+# IDE / Builds
+.idea/*
+target/*
