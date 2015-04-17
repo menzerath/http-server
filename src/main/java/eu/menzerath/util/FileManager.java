@@ -21,9 +21,13 @@ public class FileManager {
         mimeTypes.put(".jpg", "image/jpeg");
         mimeTypes.put(".jpeg", "image/jpeg");
         mimeTypes.put(".png", "image/png");
+        mimeTypes.put(".ico", "image/x-ico");
 
         // Audio
         mimeTypes.put(".mp3", "audio/mpeg");
+        mimeTypes.put(".wav", "audio/wav");
+        mimeTypes.put(".flac", "audio/flac");
+        mimeTypes.put(".ogg", "audio/x-ogg");
         mimeTypes.put(".mp4", "video/mp4");
         mimeTypes.put(".flv", "video/x-flv");
 
@@ -34,6 +38,17 @@ public class FileManager {
         mimeTypes.put(".xhtml", "text/html");
         mimeTypes.put(".css", "text/css");
         mimeTypes.put(".js", "text/js");
+
+        // Linux
+        mimeTypes.put(".deb", "application/x-debian-package");
+
+        // Archive
+        mimeTypes.put(".zip", "application/zip");
+        mimeTypes.put(".tar", "application/x-tar");
+        mimeTypes.put(".gtar", "application/x-gtar");
+        mimeTypes.put(".tar.gz", "application/gzip");
+        mimeTypes.put(".tgz", "application/gzip");
+        mimeTypes.put(".gz", "application/gzip");
 
         // Anderes
         mimeTypes.put(".txt", "text/plain");
