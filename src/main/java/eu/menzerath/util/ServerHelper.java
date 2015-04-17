@@ -20,15 +20,15 @@ public class ServerHelper {
     }
 
     /**
-     * Gibt den "anerkannten" Webroot des Servers zurück; dh. einen validen und absoluten Pfad zum Ordner
-     * @return Pfad zum Webroot
+     * Gibt den "anerkannten" (validen und absoluten) Pfad zu einer Datei/einem Verzeichnis zurück
+     * @return Pfad zur Datei / zum Verzeichnis
      */
-    public static String getCanonicalWebRoot(File webRoot) {
-        String canonicalWebRoot = "";
+    public static String getCanonicalPath(File file) {
+        String canonicalPath = "";
         try {
-            canonicalWebRoot = webRoot.getCanonicalPath();
+            canonicalPath = file.getCanonicalPath();
         } catch (IOException ignored) {
         }
-        return canonicalWebRoot;
+        return canonicalPath;
     }
 }

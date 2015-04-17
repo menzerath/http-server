@@ -49,6 +49,7 @@ public class HTTPServer {
         System.out.println(lineTitle);
         System.out.println(lineUrl);
         System.out.println(lineOne);
+        System.out.println("Directory: " + ServerHelper.getCanonicalPath(webRoot));
 
         // Erstellt einen Ordner für die Daten (falls nötig)
         if (!webRoot.exists() && !webRoot.mkdir()) {

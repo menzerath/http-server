@@ -120,7 +120,7 @@ public class HTTPThread extends Thread {
                 }
             }
 
-            if (!file.toString().startsWith(ServerHelper.getCanonicalWebRoot(webRoot))) {
+            if (!file.toString().startsWith(ServerHelper.getCanonicalPath(webRoot))) {
                 // Datei liegt nicht innerhalb des Web-Roots: Zugriff verhindern und
                 // Fehlerseite senden
                 sendError(out, 403, "Forbidden");
