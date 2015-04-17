@@ -171,33 +171,8 @@ public class HTTPThread extends Thread {
                 out.write(output.getBytes());
             } else {
                 // Eine einzelne Datei wurde angefordert: Ausgabe via InputStream
-
-                // InputStream vorbereiten
-                try (InputStream reader = new BufferedInputStream(new FileInputStream(file))) {
-                    // Falls es keinen festgelegten ContentType zur Dateiendung gibt, wird der Download gestartet
-                    String contentType = FileManager.getContentType(file);
-                    if (contentType == null) {
-                        contentType = "application/octet-stream";
-                    }
-
-                    // Header senden, Zugriff loggen und Datei senden
-                    sendHeader(out, 200, "OK", contentType, file.length(), file.lastModified());
-                    logger.access(wantedFile, socket.getInetAddress().toString());
-                    try {
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        while ((bytesRead = reader.read(buffer)) > 0) {
-                            out.write(buffer, 0, bytesRead);
-                        }
-                        reader.close();
-                    } catch (NullPointerException | IOException e) {
-                        // Wirft eine "Broken Pipe" oder "Socket Write Error" Exception,
-                        // wenn der Download / Stream abgebrochen wird
-                        logger.exception(e.getMessage());
-                    }
-                } catch (FileNotFoundException e) {
-                    logger.exception(e.getMessage());
-                }
+                logger.access(wantedFile, socket.getInetAddress().toString());
+                sendFile(file, out);
             }
         } catch (IOException e) {
             logger.exception(e.getMessage());
@@ -205,6 +180,40 @@ public class HTTPThread extends Thread {
 
         try {
             socket.close();
+        } catch (IOException e) {
+            logger.exception(e.getMessage());
+        }
+    }
+
+    /**
+     * Sendet die übergebene Datei durch den übergebenen BufferedOutputStream
+     *
+     * @param file Datei, die gesendet werden soll
+     * @param out  BufferedOutputStream, über den die Datei gesendet werden soll
+     */
+    private void sendFile(File file, BufferedOutputStream out) {
+        // InputStream vorbereiten
+        try (InputStream reader = new BufferedInputStream(new FileInputStream(file))) {
+            // Falls es keinen festgelegten ContentType zur Dateiendung gibt, wird der Download gestartet
+            String contentType = FileManager.getContentType(file);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+
+            // Header und Datei senden
+            sendHeader(out, 200, "OK", contentType, file.length(), file.lastModified());
+            try {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = reader.read(buffer)) > 0) {
+                    out.write(buffer, 0, bytesRead);
+                }
+                reader.close();
+            } catch (NullPointerException | IOException e) {
+                // Wirft eine "Broken Pipe" oder "Socket Write Error" Exception,
+                // wenn der Download / Stream abgebrochen wird
+                logger.exception(e.getMessage());
+            }
         } catch (IOException e) {
             logger.exception(e.getMessage());
         }
