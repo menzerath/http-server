@@ -15,6 +15,7 @@ public class HTTPThread extends Thread {
     private Socket socket;
     private File webRoot;
     private boolean allowDirectoryListing;
+    private Logger logger;
 
     /**
      * Konstruktor; speichert die übergebenen Daten
@@ -23,10 +24,11 @@ public class HTTPThread extends Thread {
      * @param webRoot               Pfad zum Hauptverzeichnis
      * @param allowDirectoryListing Sollen Verzeichnisinhalte aufgelistet werden, falls keine Index-Datei vorliegt?
      */
-    public HTTPThread(Socket socket, File webRoot, boolean allowDirectoryListing) {
+    public HTTPThread(Socket socket, File webRoot, boolean allowDirectoryListing, Logger logger) {
         this.socket = socket;
         this.webRoot = webRoot;
         this.allowDirectoryListing = allowDirectoryListing;
+        this.logger = logger;
     }
 
     /**
@@ -41,7 +43,7 @@ public class HTTPThread extends Thread {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
             out = new BufferedOutputStream(socket.getOutputStream());
         } catch (IOException e) {
-            Logger.exception(e.getMessage());
+            logger.exception(e.getMessage());
             return;
         }
 
@@ -50,7 +52,7 @@ public class HTTPThread extends Thread {
         try {
             socket.setSoTimeout(30000);
         } catch (SocketException e) {
-            Logger.exception(e.getMessage());
+            logger.exception(e.getMessage());
         }
 
         // Lesen des Request
@@ -63,7 +65,7 @@ public class HTTPThread extends Thread {
         } catch (IOException e) {
             // Request konnte nicht (korrekt) gelesen werden
             sendError(out, 400, "Bad Request");
-            Logger.exception(e.getMessage());
+            logger.exception(e.getMessage());
             return;
         }
 
@@ -73,7 +75,7 @@ public class HTTPThread extends Thread {
         // Nur Requests mit dem HTTP 1.0 / 1.1 Protokoll erlaubt
         if (!request.get(0).endsWith(" HTTP/1.0") && !request.get(0).endsWith(" HTTP/1.1")) {
             sendError(out, 400, "Bad Request");
-            Logger.error(400, "Bad Request: " + request.get(0), socket.getInetAddress().toString());
+            logger.error(400, "Bad Request: " + request.get(0), socket.getInetAddress().toString());
             return;
         }
 
@@ -86,7 +88,7 @@ public class HTTPThread extends Thread {
             } else {
                 // Methode nicht implementiert oder unbekannt
                 sendError(out, 501, "Not Implemented");
-                Logger.error(501, "Not Implemented: " + request.get(0), socket.getInetAddress().toString());
+                logger.error(501, "Not Implemented: " + request.get(0), socket.getInetAddress().toString());
                 return;
             }
         }
@@ -111,7 +113,7 @@ public class HTTPThread extends Thread {
         try {
             file = new File(webRoot, URLDecoder.decode(path, "UTF-8")).getCanonicalFile();
         } catch (IOException e) {
-            Logger.exception(e.getMessage());
+            logger.exception(e.getMessage());
             return;
         }
 
@@ -133,12 +135,12 @@ public class HTTPThread extends Thread {
             // Datei liegt nicht innerhalb des Web-Roots: Zugriff verhindern und
             // Fehlerseite senden
             sendError(out, 403, "Forbidden");
-            Logger.error(403, wantedFile, socket.getInetAddress().toString());
+            logger.error(403, wantedFile, socket.getInetAddress().toString());
             return;
         } else if (!file.exists()) {
             // Datei existiert nicht: Fehlerseite senden
             sendError(out, 404, "Not Found");
-            Logger.error(404, wantedFile, socket.getInetAddress().toString());
+            logger.error(404, wantedFile, socket.getInetAddress().toString());
             return;
         } else if (file.isDirectory()) {
             // Innerhalb eines Verzeichnis: Auflistung aller Dateien
@@ -147,7 +149,7 @@ public class HTTPThread extends Thread {
             if (!allowDirectoryListing) {
                 // Fehlermeldung senden
                 sendError(out, 403, "Forbidden");
-                Logger.error(403, wantedFile, socket.getInetAddress().toString());
+                logger.error(403, wantedFile, socket.getInetAddress().toString());
                 return;
             }
 
@@ -160,14 +162,14 @@ public class HTTPThread extends Thread {
             if (files != null) {
                 if (files.length == 0) {
                     sendError(out, 404, "Not Found");
-                    Logger.error(404, wantedFile, socket.getInetAddress().toString());
+                    logger.error(404, wantedFile, socket.getInetAddress().toString());
                     return;
                 }
             } else {
                 // Kann unter Umständen auf Windows-Systemen vorkommen
                 // Beispiel: Aufruf von "Documents and Settings" anstelle von "Users"
                 sendError(out, 403, "Forbidden");
-                Logger.error(403, wantedFile, socket.getInetAddress().toString());
+                logger.error(403, wantedFile, socket.getInetAddress().toString());
                 return;
             }
 
@@ -237,11 +239,11 @@ public class HTTPThread extends Thread {
 
             // Header und Inhalt senden
             sendHeader(out, 200, "OK", "text/html", -1, System.currentTimeMillis());
-            Logger.access(wantedFile, socket.getInetAddress().toString());
+            logger.access(wantedFile, socket.getInetAddress().toString());
             try {
                 out.write(output.getBytes());
             } catch (IOException e) {
-                Logger.exception(e.getMessage());
+                logger.exception(e.getMessage());
             }
         } else {
             // Eine einzelne Datei wurde angefordert: Ausgabe via InputStream
@@ -251,13 +253,13 @@ public class HTTPThread extends Thread {
             try {
                 reader = new BufferedInputStream(new FileInputStream(file));
             } catch (FileNotFoundException e) {
-                Logger.exception(e.getMessage());
+                logger.exception(e.getMessage());
             }
 
             // Datei existiert (erstaunlicherweise) nicht (mehr)
             if (reader == null) {
                 sendError(out, 404, "Not Found");
-                Logger.error(404, wantedFile, socket.getInetAddress().toString());
+                logger.error(404, wantedFile, socket.getInetAddress().toString());
                 return;
             }
 
@@ -269,7 +271,7 @@ public class HTTPThread extends Thread {
 
             // Header senden, Zugriff loggen und Datei senden
             sendHeader(out, 200, "OK", contentType, file.length(), file.lastModified());
-            Logger.access(wantedFile, socket.getInetAddress().toString());
+            logger.access(wantedFile, socket.getInetAddress().toString());
             try {
                 byte[] buffer = new byte[4096];
                 int bytesRead;
@@ -280,7 +282,7 @@ public class HTTPThread extends Thread {
             } catch (NullPointerException | IOException e) {
                 // Wirft eine "Broken Pipe" oder "Socket Write Error" Exception,
                 // wenn der Download / Stream abgebrochen wird
-                Logger.exception(e.getMessage());
+                logger.exception(e.getMessage());
             }
         }
 
@@ -289,7 +291,7 @@ public class HTTPThread extends Thread {
             out.flush();
             out.close();
         } catch (IOException e) {
-            Logger.exception(e.getMessage());
+            logger.exception(e.getMessage());
         }
     }
 
@@ -313,7 +315,7 @@ public class HTTPThread extends Thread {
                     "Last-modified: " + new Date(lastModified).toString() + "\r\n" +
                     "\r\n").getBytes());
         } catch (IOException e) {
-            Logger.exception(e.getMessage());
+            logger.exception(e.getMessage());
         }
     }
 
@@ -340,7 +342,7 @@ public class HTTPThread extends Thread {
             // Schließt den Socket; "keep-alive" wird also ignoriert
             socket.close();
         } catch (IOException e) {
-            Logger.exception(e.getMessage());
+            logger.exception(e.getMessage());
         }
     }
 }

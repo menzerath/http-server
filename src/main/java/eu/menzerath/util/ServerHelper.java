@@ -14,8 +14,7 @@ public class ServerHelper {
     public static String getServerIp() {
         try {
             return Inet4Address.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            Logger.exception(e.getMessage());
+        } catch (UnknownHostException ignored) {
             return "127.0.0.1";
         }
     }
@@ -28,8 +27,7 @@ public class ServerHelper {
         String canonicalWebRoot = "";
         try {
             canonicalWebRoot = webRoot.getCanonicalPath();
-        } catch (IOException e) {
-            Logger.exception(e.getMessage());
+        } catch (IOException ignored) {
         }
         return canonicalWebRoot;
     }

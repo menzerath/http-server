@@ -5,17 +5,26 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class Logger {
-    private static File logfile;
+    private boolean writeToFile;
+    private BlockingQueue<String> queue;
 
     /**
-     * Ändert die Datei, in der alle Log-Meldungen gespeichert werden
+     * Konstruktor; Übergibt die Datei, in der alle Log-Meldungen gespeichert werden, bei Bedarf an die LogfileWriter-Klasse
      *
-     * @param pLogfile Neue Log-Datei
+     * @param logfile Neue Log-Datei
      */
-    public static void setLogfile(File pLogfile) {
-        logfile = pLogfile;
+    public Logger(File logfile) {
+        if (logfile != null) {
+            queue = new ArrayBlockingQueue<>(1024);
+            new Thread(new LogfileWriter(queue, logfile)).start();
+            writeToFile = true;
+        } else {
+            writeToFile = false;
+        }
     }
 
     /**
@@ -24,7 +33,7 @@ public class Logger {
      * @param file Datei auf die zugegriffen wurde
      * @param ip   IP-Adresse des Clients
      */
-    public static void access(String file, String ip) {
+    public void access(String file, String ip) {
         write("[200] [" + ip.replace("/", "") + "] " + file);
     }
 
@@ -35,7 +44,7 @@ public class Logger {
      * @param file Datei auf die zugegriffen werden sollte
      * @param ip   IP-Adresse des Clients
      */
-    public static void error(int code, String file, String ip) {
+    public void error(int code, String file, String ip) {
         write("[" + code + "] [" + ip.replace("/", "") + "] " + file);
     }
 
@@ -44,7 +53,7 @@ public class Logger {
      *
      * @param message Inhalt / Grund der Exception
      */
-    public static void exception(String message) {
+    public void exception(String message) {
         write("[EXC] " + message);
     }
 
@@ -53,7 +62,7 @@ public class Logger {
      *
      * @param message Inhalt der Meldung
      */
-    private static void write(String message) {
+    private void write(String message) {
         // Zusammensetzung der Meldung
         String out = "[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(System.currentTimeMillis()) + "] " + message;
 
@@ -61,13 +70,6 @@ public class Logger {
         System.out.println(out);
 
         // Schreibe in Datei
-        if (logfile != null) {
-            try {
-                PrintWriter printWriter = new PrintWriter(new FileOutputStream(logfile, true));
-                printWriter.append(out).append("\r\n");
-                printWriter.close();
-            } catch (IOException ignored) {
-            }
-        }
+        if (writeToFile) queue.add(out);
     }
 }

@@ -27,7 +27,7 @@ public class HTTPServer {
      * Konstruktor; erstellt (wenn nötig) den Ordner für die Daten und startet schließlich den ConnectionListener
      */
     public HTTPServer(int port, final File webRoot, final boolean allowDirectoryListing, File logfile) {
-        Logger.setLogfile(logfile);
+        final Logger logger = new Logger(logfile);
 
         // Gib die IP-Adresse sowie den Port des Servers aus
         // Passe die Ausgabe an die Länge der IP-Adresse + Port an
@@ -47,8 +47,8 @@ public class HTTPServer {
         // Erstellt einen Ordner für die Daten (falls nötig)
         if (!webRoot.exists() && !webRoot.mkdir()) {
             // Ordner existiert nicht & konnte nicht angelegt werden: Abbruch
-            Logger.exception("Konnte Daten-Verzeichnis nicht erstellen.");
-            Logger.exception("Beende...");
+            logger.exception("Konnte Daten-Verzeichnis nicht erstellen.");
+            logger.exception("Beende...");
             System.exit(1);
         }
 
@@ -58,22 +58,22 @@ public class HTTPServer {
             socket = new ServerSocket(port);
         } catch (IOException | IllegalArgumentException e) {
             // Port bereits belegt, darf nicht genutzt werden, ...: Abbruch
-            Logger.exception(e.getMessage());
-            Logger.exception("Beende...");
+            logger.exception(e.getMessage());
+            logger.exception("Beende...");
             System.exit(1);
         }
 
         // Neuer Thread: wartet auf eingehende Verbindungen und "vermittelt" diese an einen neuen HTTPThread, der die Anfrage dann verarbeitet
         final ServerSocket finalSocket = socket;
-        Thread connectionListener = new Thread(){
+        Thread connectionListener = new Thread() {
             public void run(){
                 while (true) {
                     try {
-                        HTTPThread thread = new HTTPThread(finalSocket.accept(), webRoot, allowDirectoryListing);
+                        HTTPThread thread = new HTTPThread(finalSocket.accept(), webRoot, allowDirectoryListing, logger);
                         thread.start();
                     } catch (IOException e) {
-                        Logger.exception(e.getMessage());
-                        Logger.exception("Beende...");
+                        logger.exception(e.getMessage());
+                        logger.exception("Beende...");
                         System.exit(1);
                     }
                 }
