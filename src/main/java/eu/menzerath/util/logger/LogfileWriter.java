@@ -1,4 +1,4 @@
-package eu.menzerath.util;
+package eu.menzerath.util.logger;
 
 import java.io.File;
 import java.io.FileOutputStream;

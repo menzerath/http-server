@@ -1,4 +1,4 @@
-package eu.menzerath.util;
+package eu.menzerath.util.logger;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -38,6 +38,9 @@ public class ConsoleWindow {
         });
     }
 
+    /**
+     * Konstruktor; leitet Meldungen der Applikation in die JTextArea um und belegt die Buttons mit einer Funktion
+     */
     public ConsoleWindow() {
         PrintStream printStream = new PrintStream(new CustomOutputStream(logOutput));
         System.setOut(printStream);
@@ -58,6 +61,9 @@ public class ConsoleWindow {
         });
     }
 
+    /**
+     * Hilfsklasse, die den OutputStream der Konsole auf die JTextArea umleitet
+     */
     private class CustomOutputStream extends OutputStream {
         private JTextArea textArea;
 

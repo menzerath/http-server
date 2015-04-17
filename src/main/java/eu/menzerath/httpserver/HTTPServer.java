@@ -1,8 +1,8 @@
 package eu.menzerath.httpserver;
 
-import eu.menzerath.util.ConsoleWindow;
-import eu.menzerath.util.Logger;
 import eu.menzerath.util.ServerHelper;
+import eu.menzerath.util.logger.ConsoleWindow;
+import eu.menzerath.util.logger.Logger;
 
 import java.awt.*;
 import java.io.File;

@@ -1,15 +1,17 @@
 package eu.menzerath.httpserver;
 
-import eu.menzerath.util.ServerHelper;
 import eu.menzerath.util.FileManager;
-import eu.menzerath.util.Logger;
+import eu.menzerath.util.ServerHelper;
+import eu.menzerath.util.logger.Logger;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
 
 public class HTTPThread extends Thread {
     private Socket socket;
@@ -159,8 +161,6 @@ public class HTTPThread extends Thread {
                 }
 
                 String output = WebResources.getDirectoryTemplate("Index of " + path, buildDirectoryListing(path, files));
-
-                if (path.equals("")) path = "/"; // Rück-Anpassung für spätere Verwendung
 
                 // Abschließenden Slash an Verzeichnis anhängen
                 if (!wantedFile.endsWith("/")) wantedFile += "/";
