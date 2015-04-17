@@ -1,8 +1,10 @@
 package eu.menzerath.httpserver;
 
+import eu.menzerath.util.ConsoleWindow;
 import eu.menzerath.util.Logger;
 import eu.menzerath.util.ServerHelper;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,6 +16,10 @@ public class HTTPServer {
      * @param args Beim Aufruf übergebene Argumente
      */
     public static void main(String[] args) {
+        if (!GraphicsEnvironment.isHeadless()) {
+            ConsoleWindow.show();
+        }
+
         if (args.length == 4) {
             new HTTPServer(Integer.valueOf(args[0]), new File(args[1]), Boolean.valueOf(args[2]), new File(args[3]));
         } else if (args.length == 3) {
