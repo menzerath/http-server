@@ -61,10 +61,13 @@ public class Logger {
         System.out.println(out);
 
         // Schreibe in Datei
-        try {
-            PrintWriter printWriter = new PrintWriter(new FileOutputStream(logfile, true));
-            printWriter.append(out).append("\r\n");
-            printWriter.close();
-        } catch (IOException ignored) {}
+        if (logfile != null) {
+            try {
+                PrintWriter printWriter = new PrintWriter(new FileOutputStream(logfile, true));
+                printWriter.append(out).append("\r\n");
+                printWriter.close();
+            } catch (IOException ignored) {
+            }
+        }
     }
 }

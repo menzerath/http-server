@@ -11,10 +11,16 @@ public class HTTPServer {
 
     /**
      * Einstiegspunkt der Anwendung; erstellt ein HTTPServer-Objekt
-     * @param args Beim Aufruf übergebene Argumente; werden aber ignoriert
+     * @param args Beim Aufruf übergebene Argumente
      */
     public static void main(String[] args) {
-        new HTTPServer(8080, new File("./www"), true, new File("log.txt"));
+        if (args.length == 4) {
+            new HTTPServer(Integer.valueOf(args[0]), new File(args[1]), Boolean.valueOf(args[2]), new File(args[3]));
+        } else if (args.length == 3) {
+            new HTTPServer(Integer.valueOf(args[0]), new File(args[1]), Boolean.valueOf(args[2]), null);
+        } else {
+            new HTTPServer(80, new File("./"), true, new File("../log.txt"));
+        }
     }
 
     /**
