@@ -25,15 +25,14 @@ public class LogfileWriter implements Runnable {
      */
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
-            try {
-                PrintWriter printWriter = new PrintWriter(new FileOutputStream(logfile, true));
+            try (PrintWriter printWriter = new PrintWriter(new FileOutputStream(logfile, true))) {
                 printWriter.append((String)queue.take()).append("\r\n");
                 printWriter.close();
             } catch (IOException | InterruptedException ignored) {
             }
 
             try {
-                Thread.sleep(500);
+                Thread.sleep(1000);
             } catch (InterruptedException ignored) {
             }
         }
