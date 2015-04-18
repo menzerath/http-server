@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class Logger {
     private boolean writeToFile;
@@ -16,7 +17,7 @@ public class Logger {
      */
     public Logger(File logfile) {
         if (logfile != null) {
-            queue = new ArrayBlockingQueue<>(1024);
+            queue = new ArrayBlockingQueue<>(4096);
             new Thread(new LogfileWriter(queue, logfile)).start();
             writeToFile = true;
         } else {
@@ -60,13 +61,19 @@ public class Logger {
      * @param message Entry to log
      */
     private void write(String message) {
-        // Zusammensetzung der Meldung
+        // Build up log-entry
         String out = "[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(System.currentTimeMillis()) + "] " + message;
 
-        // Ausgabe auf der Konsole
+        // Print on console
         System.out.println(out);
 
-        // Schreibe in Datei
-        if (writeToFile) queue.add(out);
+        // Write into file
+        if (writeToFile) {
+            try {
+                queue.offer(out, 1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
 }
