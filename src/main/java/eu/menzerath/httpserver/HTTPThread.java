@@ -8,10 +8,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
+import java.util.*;
 
 public class HTTPThread extends Thread {
     private Socket socket;
@@ -269,7 +266,7 @@ public class HTTPThread extends Thread {
             String fileSize = FileManager.getReadableFileSize(myFile.length());
             if (myFile.isDirectory()) {
                 img = "<div class=\"folder\">&nbsp;</div>";
-                fileSize = "";
+                fileSize = "-";
             } else {
                 img = "<div class=\"file\">&nbsp;</div>";
             }
@@ -278,7 +275,7 @@ public class HTTPThread extends Thread {
             content += "<tr><td class=\"center\">" + img + "</td>" +
                     "<td><a href=\"" + path.replace(" ", "%20") + "/" + filename.replace(" ", "%20") + "\">" + filename + "</a></td>" +
                     "<td>" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(myFile.lastModified()) + "</td>" +
-                    "<td class=\"center\">" + fileSize + "</td></tr>";
+                    "<td>" + fileSize + "</td></tr>";
         }
 
         // Tabelle schließen und mit Template zusammenfügen
@@ -298,13 +295,16 @@ public class HTTPThread extends Thread {
      * @param lastModified  Wann die Datei zuletzt verändert wurde (zum Caching des Browsers)
      */
     private void sendHeader(BufferedOutputStream out, int code, String codeMessage, String contentType, long contentLength, long lastModified) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
         try {
             out.write(("HTTP/1.1 " + code + " " + codeMessage + "\r\n" +
-                    "Date: " + new Date().toString() + "\r\n" +
-                    "Server: Marvins HTTP-Server\r\n" +
+                    "Date: " + dateFormat.format(new Date()) + "\r\n" +
                     "Content-Type: " + contentType + "; charset=utf-8\r\n" +
                     ((contentLength != -1) ? "Content-Length: " + contentLength + "\r\n" : "") +
-                    "Last-modified: " + new Date(lastModified).toString() + "\r\n" +
+                    "Last-Modified: " + dateFormat.format(new Date(lastModified)) + "\r\n" +
+                    "X-Powered-By: a simple Java HTTP-Server\r\n" +
                     "\r\n").getBytes());
         } catch (IOException e) {
             logger.exception(e.getMessage());
