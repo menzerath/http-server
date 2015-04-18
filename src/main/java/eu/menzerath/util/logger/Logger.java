@@ -10,9 +10,9 @@ public class Logger {
     private BlockingQueue<String> queue;
 
     /**
-     * Konstruktor; Übergibt die Datei, in der alle Log-Meldungen gespeichert werden, bei Bedarf an die LogfileWriter-Klasse
+     * Constructor; creates (if needed) a new Thread, which will write new log-entries into the logfile using a queue
      *
-     * @param logfile Neue Log-Datei
+     * @param logfile log-file to use
      */
     public Logger(File logfile) {
         if (logfile != null) {
@@ -25,39 +25,39 @@ public class Logger {
     }
 
     /**
-     * Zugriff auf eine Datei / ein Verzeichnis
+     * Log an access (200)
      *
-     * @param file Datei auf die zugegriffen wurde
-     * @param ip   IP-Adresse des Clients
+     * @param file Accessed file
+     * @param ip   Client's IP-address
      */
     public void access(String file, String ip) {
         write("[200] [" + ip.replace("/", "") + "] " + file);
     }
 
     /**
-     * Fehler beim Zugriff (403, 404, ...)
+     * Log an error (403, 404, ...)
      *
-     * @param code HTTP-Status-Code
-     * @param file Datei auf die zugegriffen werden sollte
-     * @param ip   IP-Adresse des Clients
+     * @param code HTTP-status-code
+     * @param file Accessed file
+     * @param ip   Client's IP-address
      */
     public void error(int code, String file, String ip) {
         write("[" + code + "] [" + ip.replace("/", "") + "] " + file);
     }
 
     /**
-     * Interner Fehler (Abbruch eines Streams, ...)
+     * Internal error / exception
      *
-     * @param message Inhalt / Grund der Exception
+     * @param message Exception's message
      */
     public void exception(String message) {
         write("[EXC] " + message);
     }
 
     /**
-     * Gibt die Log-Meldung auf der Konsole aus und speichert sie in der Log-Datei
+     * Prints the log-entry on the console (virtual console) an puts it into the LogfileWriter's queue
      *
-     * @param message Inhalt der Meldung
+     * @param message Entry to log
      */
     private void write(String message) {
         // Zusammensetzung der Meldung
