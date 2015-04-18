@@ -12,6 +12,7 @@ public class LogfileWriter implements Runnable {
 
     /**
      * Constructor; saves the used BlockingQueue and logfile
+     *
      * @param queue   Queue, which contains all the new entries
      * @param logfile File, in which new entries have to be written into
      */
