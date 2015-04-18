@@ -27,7 +27,7 @@ public class ConsoleWindow {
         frame.setContentPane(gui.mainPanel);
         frame.pack();
         frame.setLocationRelativeTo(null);
-        frame.setTitle("HTTP-Server");
+        frame.setTitle("a simple Java HTTP-Server");
         frame.setResizable(true);
         frame.setVisible(true);
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -39,7 +39,7 @@ public class ConsoleWindow {
     }
 
     /**
-     * Konstruktor; leitet Meldungen der Applikation in die JTextArea um und belegt die Buttons mit einer Funktion
+     * Constructor; redirects the application's log-entries into a JTextArea and gives the buttons a function
      */
     public ConsoleWindow() {
         PrintStream printStream = new PrintStream(new CustomOutputStream(logOutput));
@@ -62,7 +62,7 @@ public class ConsoleWindow {
     }
 
     /**
-     * Hilfsklasse, die den OutputStream der Konsole auf die JTextArea umleitet
+     * Helping class, which redirects the console's OutputStream into a JTextArea
      */
     private class CustomOutputStream extends OutputStream {
         private JTextArea textArea;
