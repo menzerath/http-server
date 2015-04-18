@@ -11,9 +11,9 @@ public class LogfileWriter implements Runnable {
     private File logfile;
 
     /**
-     * Konstruktor; speichert die BlockingQueue und die Log-Datei
-     * @param queue     Queue, die neue Log-Einträge bereithält
-     * @param logfile   Datei, in die neue Log-Einträge geschrieben werden sollen
+     * Constructor; saves the used BlockingQueue and logfile
+     * @param queue   Queue, which contains all the new entries
+     * @param logfile File, in which new entries have to be written into
      */
     public LogfileWriter(BlockingQueue<String> queue, File logfile) {
         this.queue = queue;
@@ -21,7 +21,7 @@ public class LogfileWriter implements Runnable {
     }
 
     /**
-     * Schreibt in einem bestimmten Intervall die neuen Log-Einträge in die Log-Datei
+     * Writes new entries into the logfile
      */
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
@@ -29,12 +29,6 @@ public class LogfileWriter implements Runnable {
                 printWriter.append(queue.take()).append("\r\n");
                 printWriter.close();
             } catch (IOException | InterruptedException ignored) {
-            }
-
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }
