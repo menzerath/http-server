@@ -12,76 +12,67 @@ import java.net.ServerSocket;
 public class HTTPServer {
 
     /**
-     * Einstiegspunkt der Anwendung; erstellt ein HTTPServer-Objekt
-     * @param args Beim Aufruf übergebene Argumente
+     * Entry-Point of this application; creates a HTTP-Server-Object
+     * @param args Passed arguments
      */
     public static void main(String[] args) {
+        // Always show the ConsoleWindow if possible
         if (!GraphicsEnvironment.isHeadless()) {
             ConsoleWindow.show();
         }
 
         if (args.length == 4) {
+            // Log-File wanted
             new HTTPServer(Integer.valueOf(args[0]), new File(args[1]), Boolean.valueOf(args[2]), new File(args[3]));
         } else if (args.length == 3) {
+            // No Log-File wanted
             new HTTPServer(Integer.valueOf(args[0]), new File(args[1]), Boolean.valueOf(args[2]), null);
         } else {
+            // Use Default-Parameters
             new HTTPServer(80, new File("./"), true, new File("../log.txt"));
         }
     }
 
     /**
-     * Konstruktor; erstellt (wenn nötig) den Ordner für die Daten und startet schließlich den ConnectionListener
+     * Constructor; creates (if needed) some directories and starts a ConnectionListener
      */
     public HTTPServer(int port, final File webRoot, final boolean allowDirectoryListing, File logfile) {
         final Logger logger = new Logger(logfile);
 
-        // Gib die IP-Adresse sowie den Port des Servers aus
-        // Passe die Ausgabe an die Länge der IP-Adresse + Port an
-        String lineOne = "";
-        String lineUrl = "### http://" + ServerHelper.getServerIp() + ":" + port + " ###";
-        String lineTitle = "### HTTP-Server";
-        for (int i = 0; i < lineUrl.length(); i++) lineOne += "#";
-        for (int i = 0; i < lineUrl.length() - 18; i++) lineTitle += " ";
-        lineTitle += "###";
+        // Prints out some information
+        System.out.println("##############################################\n### a simple Java HTTP-Server              ###\n" +
+                "### github.com/MarvinMenzerath/HTTP-Server ###\n##############################################");
+        System.out.println("Serving at: " + "http://" + ServerHelper.getServerIp() + ":" + port);
+        System.out.println("Directory:  " + ServerHelper.getCanonicalPath(webRoot));
 
-        // Ausgabe der Informationen
-        System.out.println(lineOne);
-        System.out.println(lineTitle);
-        System.out.println(lineUrl);
-        System.out.println(lineOne);
-        System.out.println("Directory: " + ServerHelper.getCanonicalPath(webRoot));
-
-        // Erstellt einen Ordner für die Daten (falls nötig)
+        // Creates a directory for the content to serve (if needed)
         if (!webRoot.exists() && !webRoot.mkdir()) {
-            // Ordner existiert nicht & konnte nicht angelegt werden: Abbruch
-            logger.exception("Konnte Daten-Verzeichnis nicht erstellen.");
-            logger.exception("Beende...");
+            logger.exception("Unable to create webRoot-directory.");
+            logger.exception("Exiting...");
             System.exit(1);
         }
 
-        // Erstelle einen ServerSocket mit dem angegebenen Port
+        // Open a new ServerSocket
         ServerSocket socket = null;
         try {
             socket = new ServerSocket(port);
         } catch (IOException | IllegalArgumentException e) {
-            // Port bereits belegt, darf nicht genutzt werden, ...: Abbruch
+            // Port in use
             logger.exception(e.getMessage());
-            logger.exception("Beende...");
+            logger.exception("Exiting...");
             System.exit(1);
         }
 
-        // Neuer Thread: wartet auf eingehende Verbindungen und "vermittelt" diese an einen neuen HTTPThread, der die Anfrage dann verarbeitet
+        // New Thread: waits for incoming connections and hands them over to a new HTTPThread, which handles the request
         final ServerSocket finalSocket = socket;
         Thread connectionListener = new Thread() {
             public void run(){
-                while (true) {
+                while (!Thread.currentThread().isInterrupted()) {
                     try {
                         HTTPThread thread = new HTTPThread(finalSocket.accept(), webRoot, allowDirectoryListing, logger);
                         thread.start();
                     } catch (IOException e) {
                         logger.exception(e.getMessage());
-                        logger.exception("Beende...");
-                        System.exit(1);
                     }
                 }
             }
