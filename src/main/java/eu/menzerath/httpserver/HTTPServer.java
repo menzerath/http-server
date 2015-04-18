@@ -42,8 +42,9 @@ public class HTTPServer {
         // Prints out some information
         System.out.println("##############################################\n### a simple Java HTTP-Server              ###\n" +
                 "### github.com/MarvinMenzerath/HTTP-Server ###\n##############################################");
-        System.out.println("Serving at: " + "http://" + ServerHelper.getServerIp() + ":" + port);
-        System.out.println("Directory:  " + ServerHelper.getCanonicalPath(webRoot));
+        System.out.println("Current version: " + HTTPServer.class.getPackage().getImplementationVersion());
+        System.out.println("Serving at:      " + "http://" + ServerHelper.getServerIp() + ":" + port);
+        System.out.println("Directory:       " + ServerHelper.getCanonicalPath(webRoot));
 
         // Creates a directory for the content to serve (if needed)
         if (!webRoot.exists() && !webRoot.mkdir()) {

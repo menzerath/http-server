@@ -85,6 +85,7 @@
                     <archive>
                         <manifest>
                             <mainClass>eu.menzerath.httpserver.HTTPServer</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                         </manifest>
                     </archive>
                 </configuration>
