@@ -8,8 +8,8 @@ import java.net.UnknownHostException;
 public class ServerHelper {
 
     /**
-     * Gibt die IP-Adresse des Servers im lokalen Netzwerk zurück
-     * @return IP-Adresse des Servers
+     * Returns the computer's IP-address in the local network
+     * @return Computer's IP-address
      */
     public static String getServerIp() {
         try {
@@ -20,8 +20,8 @@ public class ServerHelper {
     }
 
     /**
-     * Gibt den "anerkannten" (validen und absoluten) Pfad zu einer Datei/einem Verzeichnis zurück
-     * @return Pfad zur Datei / zum Verzeichnis
+     * Returns the canonical path to a directory
+     * @return Path to directory
      */
     public static String getCanonicalPath(File file) {
         String canonicalPath = "";
