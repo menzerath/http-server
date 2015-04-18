@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.util.concurrent.BlockingQueue;
 
 public class LogfileWriter implements Runnable {
-    private BlockingQueue queue;
+    private BlockingQueue<String> queue;
     private File logfile;
 
     /**
@@ -15,7 +15,7 @@ public class LogfileWriter implements Runnable {
      * @param queue     Queue, die neue Log-Einträge bereithält
      * @param logfile   Datei, in die neue Log-Einträge geschrieben werden sollen
      */
-    public LogfileWriter(BlockingQueue queue, File logfile) {
+    public LogfileWriter(BlockingQueue<String> queue, File logfile) {
         this.queue = queue;
         this.logfile = logfile;
     }
@@ -26,14 +26,15 @@ public class LogfileWriter implements Runnable {
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
             try (PrintWriter printWriter = new PrintWriter(new FileOutputStream(logfile, true))) {
-                printWriter.append((String)queue.take()).append("\r\n");
+                printWriter.append(queue.take()).append("\r\n");
                 printWriter.close();
             } catch (IOException | InterruptedException ignored) {
             }
 
             try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
