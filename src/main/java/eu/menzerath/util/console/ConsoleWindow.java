@@ -1,4 +1,4 @@
-package eu.menzerath.util.logger;
+package eu.menzerath.util.console;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

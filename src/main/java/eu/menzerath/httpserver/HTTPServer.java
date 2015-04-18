@@ -1,15 +1,17 @@
 package eu.menzerath.httpserver;
 
 import eu.menzerath.util.ServerHelper;
-import eu.menzerath.util.logger.ConsoleWindow;
+import eu.menzerath.util.console.ConsoleWindow;
 import eu.menzerath.util.logger.Logger;
 
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-import java.net.ServerSocket;
 
 public class HTTPServer {
+    private int port;
+    private File webRoot;
+    private boolean directoryListingAllowed;
+    private Logger logger;
 
     /**
      * Entry-Point of this application; creates a HTTP-Server-Object
@@ -34,10 +36,13 @@ public class HTTPServer {
     }
 
     /**
-     * Constructor; creates (if needed) some directories and starts a ConnectionListener
+     * Constructor; creates (if needed) some directories and starts a ThreadPooledServer
      */
     public HTTPServer(int port, final File webRoot, final boolean allowDirectoryListing, File logfile) {
-        final Logger logger = new Logger(logfile);
+        this.port = port;
+        this.webRoot = webRoot;
+        this.directoryListingAllowed = allowDirectoryListing;
+        this.logger = new Logger(logfile);
 
         // Prints out some information
         System.out.println("##############################################\n### a simple Java HTTP-Server              ###\n" +
@@ -53,31 +58,23 @@ public class HTTPServer {
             System.exit(1);
         }
 
-        // Open a new ServerSocket
-        ServerSocket socket = null;
-        try {
-            socket = new ServerSocket(port);
-        } catch (IOException | IllegalArgumentException e) {
-            // Port in use
-            logger.exception(e.getMessage());
-            logger.exception("Exiting...");
-            System.exit(1);
-        }
+        // a new ThreadPooledServer will handle all the requests
+        new Thread(new ThreadPooledServer(this)).start();
+    }
 
-        // New Thread: waits for incoming connections and hands them over to a new HTTPThread, which handles the request
-        final ServerSocket finalSocket = socket;
-        Thread connectionListener = new Thread() {
-            public void run(){
-                while (!Thread.currentThread().isInterrupted()) {
-                    try {
-                        HTTPThread thread = new HTTPThread(finalSocket.accept(), webRoot, allowDirectoryListing, logger);
-                        thread.start();
-                    } catch (IOException e) {
-                        logger.exception(e.getMessage());
-                    }
-                }
-            }
-        };
-        connectionListener.start();
+    public int getPort() {
+        return port;
+    }
+
+    public File getWebRoot() {
+        return webRoot;
+    }
+
+    public boolean isDirectoryListingAllowed() {
+        return directoryListingAllowed;
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 }

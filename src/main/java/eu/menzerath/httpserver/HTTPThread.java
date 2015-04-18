@@ -10,7 +10,7 @@ import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class HTTPThread extends Thread {
+public class HTTPThread implements Runnable {
     private Socket socket;
     private File webRoot;
     private boolean allowDirectoryListing;
@@ -19,15 +19,14 @@ public class HTTPThread extends Thread {
     /**
      * Constructor; saves passed arguments
      *
-     * @param socket                used Socket
-     * @param webRoot               Path to webRoot-directory
-     * @param allowDirectoryListing List all content in a directory if there is no index-file available?
+     * @param server active HTTPServer
+     * @param socket used Socket
      */
-    public HTTPThread(Socket socket, File webRoot, boolean allowDirectoryListing, Logger logger) {
+    public HTTPThread(HTTPServer server, Socket socket) {
         this.socket = socket;
-        this.webRoot = webRoot;
-        this.allowDirectoryListing = allowDirectoryListing;
-        this.logger = logger;
+        this.webRoot = server.getWebRoot();
+        this.allowDirectoryListing = server.isDirectoryListingAllowed();
+        this.logger = server.getLogger();
     }
 
     /**
