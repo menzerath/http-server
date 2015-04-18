@@ -17,11 +17,11 @@ public class HTTPThread extends Thread {
     private Logger logger;
 
     /**
-     * Konstruktor; speichert die übergebenen Daten
+     * Constructor; saves passed arguments
      *
-     * @param socket                verwendeter Socket
-     * @param webRoot               Pfad zum Hauptverzeichnis
-     * @param allowDirectoryListing Sollen Verzeichnisinhalte aufgelistet werden, falls keine Index-Datei vorliegt?
+     * @param socket                used Socket
+     * @param webRoot               Path to webRoot-directory
+     * @param allowDirectoryListing List all content in a directory if there is no index-file available?
      */
     public HTTPThread(Socket socket, File webRoot, boolean allowDirectoryListing, Logger logger) {
         this.socket = socket;
@@ -31,17 +31,17 @@ public class HTTPThread extends Thread {
     }
 
     /**
-     * "Herz" des Servers: Verarbeitet den Request des Clients, und sendet schließlich die Response
+     * "Heart of the server": Handles the client's request and sends a response
      */
     public void run() {
-        // Try-With-Block zur Bearbeitung der Anfrage
+        // Try-With-Block frames the whole request
         try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF8"));
              BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream())) {
 
-            // Timeout für die Verbindung von 30 Sekunden
-            socket.setSoTimeout(30000);
+            // Timeout of 5 seconds to clean up dead connections
+            socket.setSoTimeout(5000);
 
-            // Lesen des Request
+            // Parse request
             String line;
             ArrayList<String> request = new ArrayList<>();
             try {
@@ -49,53 +49,52 @@ public class HTTPThread extends Thread {
                     request.add(line);
                 }
             } catch (IOException e) {
-                // Request konnte nicht (korrekt) gelesen werden
+                // Unable to parse request
                 sendError(out, 400, "Bad Request");
                 logger.exception(e.getMessage());
                 return;
             }
 
-            // Request war leer; sollte nicht auftreten
+            // Request is empty
             if (request.isEmpty()) return;
 
-            // Nur Requests mit dem HTTP 1.0 / 1.1 Protokoll erlaubt
+            // Only accept HTTP 1.0 / 1.1 requests
             if (!request.get(0).endsWith(" HTTP/1.0") && !request.get(0).endsWith(" HTTP/1.1")) {
                 sendError(out, 400, "Bad Request");
                 logger.error(400, "Bad Request: " + request.get(0), socket.getInetAddress().toString());
                 return;
             }
 
-            // Es muss ein GET- oder POST-Request sein
+            // Only accept GET or POST requests
             boolean isPostRequest = false;
             if (!request.get(0).startsWith("GET ")) {
                 if (request.get(0).startsWith("POST ")) {
-                    // POST-Requests werden gesondert behandelt
                     isPostRequest = true;
                 } else {
-                    // Methode nicht implementiert oder unbekannt
+                    // Method is not implemented
                     sendError(out, 501, "Not Implemented");
                     logger.error(501, "Not Implemented: " + request.get(0), socket.getInetAddress().toString());
                     return;
                 }
             }
 
-            // Auf welche Datei / welchen Pfad wird zugegriffen?
+            // Specify the requested file / path
             String wantedFile;
             String path;
             File file;
 
-            // GET-Request ist wahrscheinlicher, daher wird zuerst diese Methode angenommen
+            // GET-request anticipated
             wantedFile = request.get(0).substring(4, request.get(0).length() - 9);
             if (isPostRequest) wantedFile = request.get(0).substring(5, request.get(0).length() - 9);
 
-            // GET-Request mit Argumenten: Entferne diese für die Pfad-Angabe
+            // GET-request's arguments have to be removed
             if (!isPostRequest && request.get(0).contains("?")) {
                 path = wantedFile.substring(0, wantedFile.indexOf("?"));
             } else {
                 path = wantedFile;
             }
 
-            // Bestimme nun die exakte Datei, bzw. das Verzeichnis, welche(s) angefordert wurde
+            // Which file or directory has been requested?
             try {
                 file = new File(webRoot, URLDecoder.decode(path, "UTF-8")).getCanonicalFile();
             } catch (IOException e) {
@@ -103,14 +102,13 @@ public class HTTPThread extends Thread {
                 return;
             }
 
-            // Falls ein Verzeichnis angezeigt werden soll, und eine Index-Datei vorhanden ist
-            // soll letztere angezeigt werden
+            // Directory contains an index-file? Send this file instead of directory-listing
             if (file.isDirectory()) {
                 File indexFile = new File(file, "index.html");
                 if (indexFile.exists() && !indexFile.isDirectory()) {
                     file = indexFile;
 
-                    // "/index.html" an Verzeichnispfad anhängen
+                    // add "/index.html" to path
                     if (wantedFile.contains("?")) {
                         wantedFile = wantedFile.substring(0, wantedFile.indexOf("?")) + "/index.html" + wantedFile.substring(wantedFile.indexOf("?"));
                     }
@@ -118,31 +116,29 @@ public class HTTPThread extends Thread {
             }
 
             if (!file.toString().startsWith(ServerHelper.getCanonicalPath(webRoot))) {
-                // Datei liegt nicht innerhalb des Web-Roots: Zugriff verhindern und
-                // Fehlerseite senden
+                // Requested file is _not_ inside the webRoot --> 403
                 sendError(out, 403, "Forbidden");
                 logger.error(403, wantedFile, socket.getInetAddress().toString());
             } else if (!file.exists()) {
-                // Datei existiert nicht: Fehlerseite senden
+                // Requested file / directory does _not_ exist --> 404
                 sendError(out, 404, "Not Found");
                 logger.error(404, wantedFile, socket.getInetAddress().toString());
             } else if (file.isDirectory()) {
-                // Innerhalb eines Verzeichnis: Auflistung aller Dateien
+                // Requested "file" is a directory --> Directory Listing
 
-                // Verzeichnisauflistung verboten?
+                // Check if directory-listing is allowed
                 if (!allowDirectoryListing) {
-                    // Fehlermeldung senden
                     sendError(out, 403, "Forbidden");
                     logger.error(403, wantedFile, socket.getInetAddress().toString());
                     return;
                 }
 
-                // Ersetze alle "%20"-Leerzeichen mit einem "echten" Leerzeichen
+                // Replace every "%20"-whitespace with a real whitespace
                 path = path.replace("%20", " ");
 
                 File[] files = file.listFiles();
 
-                // Das Verzeichnis ist leer? Sende eine entsprechende Fehlermeldung
+                // Directory is empty
                 if (files != null) {
                     if (files.length == 0) {
                         sendError(out, 404, "Not Found");
@@ -150,8 +146,7 @@ public class HTTPThread extends Thread {
                         return;
                     }
                 } else {
-                    // Kann unter Umständen auf Windows-Systemen vorkommen
-                    // Beispiel: Aufruf von "Documents and Settings" anstelle von "Users"
+                    // Windows-error-handling (e.g. requesting "Documents and Settings" instead of "Users")
                     sendError(out, 403, "Forbidden");
                     logger.error(403, wantedFile, socket.getInetAddress().toString());
                     return;
@@ -159,15 +154,15 @@ public class HTTPThread extends Thread {
 
                 String output = WebResources.getDirectoryTemplate("Index of " + path, buildDirectoryListing(path, files));
 
-                // Abschließenden Slash an Verzeichnis anhängen
+                // Add a closing slash
                 if (!wantedFile.endsWith("/")) wantedFile += "/";
 
-                // Header und Inhalt senden
+                // Send headers and content
                 sendHeader(out, 200, "OK", "text/html", -1, System.currentTimeMillis());
                 logger.access(wantedFile, socket.getInetAddress().toString());
                 out.write(output.getBytes());
             } else {
-                // Eine einzelne Datei wurde angefordert: Ausgabe via InputStream
+                // Single file requested: send it
                 logger.access(wantedFile, socket.getInetAddress().toString());
                 sendFile(file, out);
             }
@@ -183,21 +178,21 @@ public class HTTPThread extends Thread {
     }
 
     /**
-     * Sendet die übergebene Datei durch den übergebenen BufferedOutputStream
+     * Sends a single file though a passed BufferedOutputStream
      *
-     * @param file Datei, die gesendet werden soll
-     * @param out  BufferedOutputStream, über den die Datei gesendet werden soll
+     * @param file File to send
+     * @param out  BufferedOutputStream to send this file to
      */
     private void sendFile(File file, BufferedOutputStream out) {
-        // InputStream vorbereiten
+        // Prepare InputStream
         try (InputStream reader = new BufferedInputStream(new FileInputStream(file))) {
-            // Falls es keinen festgelegten ContentType zur Dateiendung gibt, wird der Download gestartet
+            // No ContentType found? Start a simple download
             String contentType = FileManager.getContentType(file);
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
 
-            // Header und Datei senden
+            // Send headers and content
             sendHeader(out, 200, "OK", contentType, file.length(), file.lastModified());
             try {
                 byte[] buffer = new byte[8192];
@@ -207,8 +202,7 @@ public class HTTPThread extends Thread {
                 }
                 reader.close();
             } catch (NullPointerException | IOException e) {
-                // Wirft eine "Broken Pipe" oder "Socket Write Error" Exception,
-                // wenn der Download / Stream abgebrochen wird
+                // Throws a "Broken Pipe" or "Socket Write Error" Exception if the client closes the connection before file-transfer completed
                 logger.exception(e.getMessage());
             }
         } catch (IOException e) {
@@ -217,13 +211,14 @@ public class HTTPThread extends Thread {
     }
 
     /**
-     * Erstellt aus dem übergebenen Pfad und einem Array mit vorhandenen Dateien die Verzeichnis-/Dateiauflistung
-     * @param path  Pfad, in dem die Daten liegen
-     * @param files Dateien, die in dem angegebenen Pfad liegen
-     * @return Eine HTML-Dateiauflistung
+     * Creates a directory-file-listing using the passed arguments
+     *
+     * @param path  Path in which the files are
+     * @param files Files in the given path
+     * @return a HTML-file-list
      */
     private String buildDirectoryListing(String path, File[] files) {
-        // Alle Einträge alphabetisch sortieren: Zuerst Ordner, danach Dateien
+        // Sort all files: first directories, then files
         Arrays.sort(files, new Comparator<File>() {
             @Override
             public int compare(File f1, File f2) {
@@ -237,10 +232,10 @@ public class HTTPThread extends Thread {
             }
         });
 
-        // Ausgabe in einer Tabelle vorbereiten
+        // Prepare table-output
         String content = "<table><tr><th></th><th>Name</th><th>Last modified</th><th>Size</th></tr>";
 
-        // Einen "Ebene höher"-Eintrag anlegen, falls nicht im Web-Root gearbeitet wird
+        // Add "Parent Directory"-entry (if not in webRoot)
         if (!path.equals("/")) {
             String parentDirectory = path.substring(0, path.length() - 1);
             int lastSlash = parentDirectory.lastIndexOf("/");
@@ -256,11 +251,11 @@ public class HTTPThread extends Thread {
                     "<td></td></tr>";
         }
 
-        if (path.equals("/")) path = ""; // Anpassung für Dateiauflistung
+        if (path.equals("/")) path = ""; // small adjustment
 
-        // Jede Datei zur Ausgabe hinzufügen
+        // Add every file to the output-table
         for (File myFile : files) {
-            // Meta-Daten der Datei abrufen
+            // Get some meta-data
             String filename = myFile.getName();
             String img;
             String fileSize = FileManager.getReadableFileSize(myFile.length());
@@ -271,28 +266,28 @@ public class HTTPThread extends Thread {
                 img = "<div class=\"file\">&nbsp;</div>";
             }
 
-            // Datei in die Tabelle einfügen
+            // Put all the data into a column
             content += "<tr><td class=\"center\">" + img + "</td>" +
                     "<td><a href=\"" + path.replace(" ", "%20") + "/" + filename.replace(" ", "%20") + "\">" + filename + "</a></td>" +
                     "<td>" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(myFile.lastModified()) + "</td>" +
                     "<td>" + fileSize + "</td></tr>";
         }
 
-        // Tabelle schließen und mit Template zusammenfügen
+        // Finish table and return the result
         content += "</table>";
 
         return content;
     }
 
     /**
-     * Sende den HTTP 1.1 Header zum Client
+     * Send a HTTP 1.1 Header to the client
      *
-     * @param out           Genutzter OutputStream
-     * @param code          Status-Code, der gesendet werden soll
-     * @param codeMessage   Zum Status-Code gehörende Nachricht
-     * @param contentType   ContentType des Inhalts
-     * @param contentLength Größe des Inhalts
-     * @param lastModified  Wann die Datei zuletzt verändert wurde (zum Caching des Browsers)
+     * @param out           Used BufferedOutputStream
+     * @param code          HTTP-status-code
+     * @param codeMessage   HTTP-status-code-message
+     * @param contentType   ContentType of the data to send
+     * @param contentLength Size of the data to send
+     * @param lastModified  Time when the accessed file was changed (e.g. for caching)
      */
     private void sendHeader(BufferedOutputStream out, int code, String codeMessage, String contentType, long contentLength, long lastModified) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
@@ -312,21 +307,21 @@ public class HTTPThread extends Thread {
     }
 
     /**
-     * Sendet eine Fehlerseite zum Browser
+     * Send an error-page to the client
      *
-     * @param out     Genutzter OutputStream
-     * @param code    Fehler-Code, der gesendet werden soll (403, 404, ...)
-     * @param message Zusätzlicher Text ("Not Found", ...)
+     * @param out     Used BufferedOutputStream
+     * @param code    HTTP-status-code (e.g. 404)
+     * @param message Additional text (e.g. Not Found)
      */
     private void sendError(BufferedOutputStream out, int code, String message) {
-        // Bereitet Daten der Response vor
+        // Prepare the output
         String output = WebResources.getErrorTemplate("Error " + code + ": " + message);
 
-        // Sendet Header der Response
+        // Send headers
         sendHeader(out, code, message, "text/html", output.length(), System.currentTimeMillis());
 
         try {
-            // Sendet Daten der Response
+            // Send content
             out.write(output.getBytes());
         } catch (IOException e) {
             logger.exception(e.getMessage());
