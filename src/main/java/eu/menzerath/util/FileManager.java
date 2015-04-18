@@ -9,14 +9,14 @@ public class FileManager {
     private static boolean mimeTypesInitCompleted = false;
 
     /**
-     * Diese HashMap beinhaltet einige Dateiendungen, die vom Webserver nicht mit dem Standard-MimeType ausgeliefert werden sollen
+     * This HashMap contains some file-extensions, which tell the server to use a different mime-type
      *
-     * @return Alle konfigruierten Dateiendungen mit ihren MimeTypes
+     * @return All configured file-extensions and their mime-type
      */
     public static HashMap<String, String> getMimeTypes() {
         if (mimeTypesInitCompleted) return mimeTypes;
 
-        // Bilder
+        // Images
         mimeTypes.put(".gif", "image/gif");
         mimeTypes.put(".jpg", "image/jpeg");
         mimeTypes.put(".jpeg", "image/jpeg");
@@ -31,7 +31,7 @@ public class FileManager {
         mimeTypes.put(".mp4", "video/mp4");
         mimeTypes.put(".flv", "video/x-flv");
 
-        // Webseiten
+        // Websites
         mimeTypes.put(".html", "text/html");
         mimeTypes.put(".htm", "text/html");
         mimeTypes.put(".shtml", "text/html");
@@ -42,7 +42,7 @@ public class FileManager {
         // Linux
         mimeTypes.put(".deb", "application/x-debian-package");
 
-        // Archive
+        // Archives
         mimeTypes.put(".zip", "application/zip");
         mimeTypes.put(".tar", "application/x-tar");
         mimeTypes.put(".gtar", "application/x-gtar");
@@ -50,7 +50,7 @@ public class FileManager {
         mimeTypes.put(".tgz", "application/gzip");
         mimeTypes.put(".gz", "application/gzip");
 
-        // Anderes
+        // Other
         mimeTypes.put(".txt", "text/plain");
         mimeTypes.put(".log", "text/plain");
         mimeTypes.put(".md", "text/x-markdown");
@@ -63,12 +63,11 @@ public class FileManager {
     }
 
     /**
-     * Wandelt die Dateigröße in einen lesbaren Wert (mit entsprechender Einheit) um
-     * Quelle: Mr Ed: Format file size as MB, GB etc, 08.04.2011
-     *         http://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc, 18.01.2014
+     * Converts a file's size into a readable figure and a fitting unit
+     * Source: Mr Ed: Format file size as MB, GB etc (http://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc)
      *
-     * @param size Dateigröße (in Bits)
-     * @return Lesbare Dateigröße
+     * @param size File size (in Bits)
+     * @return Readable file size
      */
     public static String getReadableFileSize(long size) {
         if (size <= 0) return "0";
@@ -79,20 +78,20 @@ public class FileManager {
     }
 
     /**
-     * Gibt den Content-Type (Mime-Type) für die entsprechende Dateiendung zurück
+     * Returns a fitting content-type (mime-type) for a specific file-extension
      *
-     * @param file Zu prüfende Datei
-     * @return Content-Type der Datei
+     * @param file File to check
+     * @return File's content-type
      */
     public static String getContentType(File file) {
         return getMimeTypes().get(getFileExtension(file));
     }
 
     /**
-     * Gibt die Dateiendung der gewählten Datei zurück (zB: "txt")
+     * Returns the file's extension
      *
-     * @param file Zu prüfende Datei
-     * @return Dateiendung
+     * @param file File to check
+     * @return File's extension
      */
     private static String getFileExtension(File file) {
         String filename = file.getName();
