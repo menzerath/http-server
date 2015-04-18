@@ -260,7 +260,7 @@ public class HTTPThread extends Thread {
             String img;
             String fileSize = FileManager.getReadableFileSize(myFile.length());
             if (myFile.isDirectory()) {
-                img = "<div class=\"folder\">&nbsp;</div>";
+                img = "<div class=\"directory\">&nbsp;</div>";
                 fileSize = "-";
             } else {
                 img = "<div class=\"file\">&nbsp;</div>";
