@@ -69,17 +69,18 @@ public class HTTPThread implements Runnable {
                 return;
             }
 
-            // Only accept GET or POST requests
+            // Only accept GET or POST or HEAD requests
             boolean isPostRequest = false;
-            if (!request.get(0).startsWith("GET ")) {
-                if (request.get(0).startsWith("POST ")) {
-                    isPostRequest = true;
-                } else {
-                    // Method is not implemented
-                    sendError(out, 501, "Not Implemented");
-                    logger.error(501, "Not Implemented: " + request.get(0), socket.getInetAddress().toString());
-                    return;
-                }
+            boolean isHeadRequest = false;
+            if (!request.get(0).startsWith("GET ") && !request.get(0).startsWith("POST ") && !request.get(0).startsWith("HEAD ")) {
+                // Method is not implemented
+                sendError(out, 501, "Not Implemented");
+                logger.error(501, "Not Implemented: " + request.get(0), socket.getInetAddress().toString());
+                return;
+            } else if (request.get(0).startsWith("POST ")) {
+                isPostRequest = true;
+            } else if (request.get(0).startsWith("HEAD ")) {
+                isHeadRequest = true;
             }
 
             // Specify the requested file / path
@@ -89,7 +90,7 @@ public class HTTPThread implements Runnable {
 
             // GET-request anticipated
             wantedFile = request.get(0).substring(4, request.get(0).length() - 9);
-            if (isPostRequest) wantedFile = request.get(0).substring(5, request.get(0).length() - 9);
+            if (isPostRequest || isHeadRequest) wantedFile = request.get(0).substring(5, request.get(0).length() - 9);
 
             // GET-request's arguments have to be removed
             if (!isPostRequest && request.get(0).contains("?")) {
@@ -121,18 +122,30 @@ public class HTTPThread implements Runnable {
 
             if (!file.toString().startsWith(ServerHelper.getCanonicalPath(webRoot))) {
                 // Requested file is _not_ inside the webRoot --> 403
-                sendError(out, 403, "Forbidden");
+                if (isHeadRequest) {
+                    sendLightHeader(out, 403, "Forbidden");
+                } else {
+                    sendError(out, 403, "Forbidden");
+                }
                 logger.error(403, wantedFile, socket.getInetAddress().toString());
             } else if (!file.exists()) {
                 // Requested file / directory does _not_ exist --> 404
-                sendError(out, 404, "Not Found");
+                if (isHeadRequest) {
+                    sendLightHeader(out, 404, "Not Found");
+                } else {
+                    sendError(out, 404, "Not Found");
+                }
                 logger.error(404, wantedFile, socket.getInetAddress().toString());
             } else if (file.isDirectory()) {
                 // Requested "file" is a directory --> Directory Listing
 
                 // Check if directory-listing is allowed
                 if (!allowDirectoryListing) {
-                    sendError(out, 403, "Forbidden");
+                    if (isHeadRequest) {
+                        sendLightHeader(out, 403, "Forbidden");
+                    } else {
+                        sendError(out, 403, "Forbidden");
+                    }
                     logger.error(403, wantedFile, socket.getInetAddress().toString());
                     return;
                 }
@@ -145,13 +158,21 @@ public class HTTPThread implements Runnable {
                 // Directory is empty
                 if (files != null) {
                     if (files.length == 0) {
-                        sendError(out, 404, "Not Found");
+                        if (isHeadRequest) {
+                            sendLightHeader(out, 404, "Not Found");
+                        } else {
+                            sendError(out, 404, "Not Found");
+                        }
                         logger.error(404, wantedFile, socket.getInetAddress().toString());
                         return;
                     }
                 } else {
                     // Windows-error-handling (e.g. requesting "Documents and Settings" instead of "Users")
-                    sendError(out, 403, "Forbidden");
+                    if (isHeadRequest) {
+                        sendLightHeader(out, 403, "Forbidden");
+                    } else {
+                        sendError(out, 403, "Forbidden");
+                    }
                     logger.error(403, wantedFile, socket.getInetAddress().toString());
                     return;
                 }
@@ -163,8 +184,10 @@ public class HTTPThread implements Runnable {
 
                 // Send headers and content
                 sendHeader(out, 200, "OK", "text/html", -1, System.currentTimeMillis());
+                if (!isHeadRequest) {
+                    out.write(output.getBytes());
+                }
                 logger.access(200, wantedFile, socket.getInetAddress().toString());
-                out.write(output.getBytes());
             } else {
                 // Single file requested: send it
 
@@ -182,7 +205,11 @@ public class HTTPThread implements Runnable {
                 if (new Date(file.lastModified()).compareTo(lastModifiedHeader) < 0) {
                     // File was modified after time in header
                     logger.access(200, wantedFile, socket.getInetAddress().toString());
-                    sendFile(file, out);
+                    if (isHeadRequest) {
+                        sendHeader(out, 200, "OK", FileManager.getContentType(file), file.length(), file.lastModified());
+                    } else {
+                        sendFile(file, out);
+                    }
                 } else {
                     // File was not modified after time in header
                     logger.access(304, wantedFile, socket.getInetAddress().toString());
