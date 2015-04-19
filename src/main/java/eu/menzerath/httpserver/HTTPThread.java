@@ -7,6 +7,7 @@ import eu.menzerath.util.logger.Logger;
 import java.io.*;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -15,6 +16,7 @@ public class HTTPThread implements Runnable {
     private File webRoot;
     private boolean allowDirectoryListing;
     private Logger logger;
+    private SimpleDateFormat dateFormat;
 
     /**
      * Constructor; saves passed arguments
@@ -27,6 +29,9 @@ public class HTTPThread implements Runnable {
         this.webRoot = server.getWebRoot();
         this.allowDirectoryListing = server.isDirectoryListingAllowed();
         this.logger = server.getLogger();
+
+        dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     /**
@@ -158,12 +163,31 @@ public class HTTPThread implements Runnable {
 
                 // Send headers and content
                 sendHeader(out, 200, "OK", "text/html", -1, System.currentTimeMillis());
-                logger.access(wantedFile, socket.getInetAddress().toString());
+                logger.access(200, wantedFile, socket.getInetAddress().toString());
                 out.write(output.getBytes());
             } else {
                 // Single file requested: send it
-                logger.access(wantedFile, socket.getInetAddress().toString());
-                sendFile(file, out);
+
+                // Check for "If-Modified-Since"-header
+                Date lastModifiedHeader = new Date();
+                for (String s : request) {
+                    if (s.toLowerCase().startsWith("if-modified-since: ")) {
+                        try {
+                            lastModifiedHeader = dateFormat.parse(s.substring(19));
+                        } catch (ParseException ignored) {
+                        }
+                    }
+                }
+
+                if (new Date(file.lastModified()).compareTo(lastModifiedHeader) < 0) {
+                    // File was modified after time in header
+                    logger.access(200, wantedFile, socket.getInetAddress().toString());
+                    sendFile(file, out);
+                } else {
+                    // File was not modified after time in header
+                    logger.access(304, wantedFile, socket.getInetAddress().toString());
+                    sendLightHeader(out, 304, "Not Modified");
+                }
             }
         } catch (IOException e) {
             logger.exception(e.getMessage());
@@ -289,9 +313,6 @@ public class HTTPThread implements Runnable {
      * @param lastModified  Time when the accessed file was changed (e.g. for caching)
      */
     private void sendHeader(BufferedOutputStream out, int code, String codeMessage, String contentType, long contentLength, long lastModified) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-
         try {
             out.write(("HTTP/1.1 " + code + " " + codeMessage + "\r\n" +
                     "Date: " + dateFormat.format(new Date()) + "\r\n" +
@@ -299,6 +320,25 @@ public class HTTPThread implements Runnable {
                     ((contentLength != -1) ? "Content-Length: " + contentLength + "\r\n" : "") +
                     "Last-Modified: " + dateFormat.format(new Date(lastModified)) + "\r\n" +
                     "X-Powered-By: a simple Java HTTP-Server\r\n" +
+                    "\r\n").getBytes());
+        } catch (IOException e) {
+            logger.exception(e.getMessage());
+        }
+    }
+
+    /**
+     * Send a "light" HTTP 1.1 Header to the client and closes the connection
+     *
+     * @param out         Used BufferedOutputStream
+     * @param code        HTTP-status-code
+     * @param codeMessage HTTP-status-code-message
+     */
+    private void sendLightHeader(BufferedOutputStream out, int code, String codeMessage) {
+        try {
+            out.write(("HTTP/1.1 " + code + " " + codeMessage + "\r\n" +
+                    "Date: " + dateFormat.format(new Date()) + "\r\n" +
+                    "X-Powered-By: a simple Java HTTP-Server\r\n" +
+                    "Connection: close\r\n" +
                     "\r\n").getBytes());
         } catch (IOException e) {
             logger.exception(e.getMessage());

@@ -26,13 +26,14 @@ public class Logger {
     }
 
     /**
-     * Log an access (200)
+     * Log an access (200, 304, ...)
      *
+     * @param code HTTP-status-code
      * @param file Accessed file
      * @param ip   Client's IP-address
      */
-    public void access(String file, String ip) {
-        write("[200] [" + ip.replace("/", "") + "] " + file);
+    public void access(int code, String file, String ip) {
+        write("[" + code + "] [" + ip.replace("/", "") + "] " + file);
     }
 
     /**
