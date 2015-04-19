@@ -2,6 +2,19 @@
 This is a very simple Java HTTP-Server, which allows quick file-transfers and directory-listings.  
 Originally this small server was developed as a part of my **[Facharbeit zum HTTP-Protokoll](http://menzerath.eu/artikel/wie-funktioniert-das-http-protokoll/)** but now it contains some more features and is a bit more extensible.
 
+## Support
+This small HTTP-server currently supports those features:
+
+* Requests
+	* `GET`
+	* `POST`
+	* `HEAD`
+* Header
+	* `If-Modified-Since`
+* Other features
+	* Directory-Listing
+	* simple 403 and 404 error-pages
+
 ## How To
 
 ### Requirements
