@@ -37,7 +37,7 @@ public class FileManager {
         mimeTypes.put(".shtml", "text/html");
         mimeTypes.put(".xhtml", "text/html");
         mimeTypes.put(".css", "text/css");
-        mimeTypes.put(".js", "text/js");
+        mimeTypes.put(".js", "application/javascript");
 
         // Linux
         mimeTypes.put(".deb", "application/x-debian-package");
