@@ -192,7 +192,7 @@ public class HTTPThread implements Runnable {
                 // Single file requested: send it
 
                 // Check for "If-Modified-Since"-header
-                Date lastModifiedHeader = new Date();
+                Date lastModifiedHeader = null;
                 for (String s : request) {
                     if (s.toLowerCase().startsWith("if-modified-since: ")) {
                         try {
@@ -202,18 +202,18 @@ public class HTTPThread implements Runnable {
                     }
                 }
 
-                if (new Date(file.lastModified()).compareTo(lastModifiedHeader) < 0) {
-                    // File was modified after time in header
+                if (lastModifiedHeader != null && (new Date(file.lastModified()).equals(lastModifiedHeader) || new Date(file.lastModified()).before(lastModifiedHeader) || new Date(file.lastModified()).toString().equals(lastModifiedHeader.toString()))) {
+                    // File was not modified after time in header
+                    logger.access(304, wantedFile, socket.getInetAddress().toString());
+                    sendLightHeader(out, 304, "Not Modified");
+                } else {
+                    // File was modified after time in header / no time in header
                     logger.access(200, wantedFile, socket.getInetAddress().toString());
                     if (isHeadRequest) {
                         sendHeader(out, 200, "OK", FileManager.getContentType(file), file.length(), file.lastModified());
                     } else {
                         sendFile(file, out);
                     }
-                } else {
-                    // File was not modified after time in header
-                    logger.access(304, wantedFile, socket.getInetAddress().toString());
-                    sendLightHeader(out, 304, "Not Modified");
                 }
             }
         } catch (IOException e) {

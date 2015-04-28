@@ -6,7 +6,7 @@
 
     <groupId>eu.menzerath.httpserver</groupId>
     <artifactId>HTTP-Server</artifactId>
-    <version>0.4</version>
+    <version>0.4.1</version>
     <packaging>jar</packaging>
 
     <name>HTTP-Server</name>
