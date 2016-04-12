@@ -1,6 +1,5 @@
 # HTTP-Server
-This is a very simple Java HTTP-Server, which allows quick file-transfers and directory-listings.  
-[![Build Status](https://drone.io/github.com/MarvinMenzerath/HTTP-Server/status.png)](https://drone.io/github.com/MarvinMenzerath/HTTP-Server/latest)
+This is a very simple Java HTTP-Server, which allows quick file-transfers and directory-listings.
 
 Originally this small server was developed as a part of my **[Facharbeit zum HTTP-Protokoll](http://menzerath.eu/artikel/wie-funktioniert-das-http-protokoll/)** but now it contains some more features and is a bit more extensible.
 
