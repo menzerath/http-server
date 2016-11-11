@@ -21,14 +21,13 @@ public class HTTPThread implements Runnable {
 	/**
 	 * Constructor; saves passed arguments
 	 *
-	 * @param server active HTTPServer
 	 * @param socket used Socket
 	 */
-	public HTTPThread(HTTPServer server, Socket socket) {
+	public HTTPThread(Socket socket) {
 		this.socket = socket;
-		this.webRoot = server.getWebRoot();
-		this.allowDirectoryListing = server.isDirectoryListingAllowed();
-		this.logger = server.getLogger();
+		this.webRoot = HTTPServer.getConfig().getWebRoot();
+		this.allowDirectoryListing = HTTPServer.getConfig().isDirectoryListingAllowed();
+		this.logger = HTTPServer.getConfig().getLogger();
 
 		dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
 		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
