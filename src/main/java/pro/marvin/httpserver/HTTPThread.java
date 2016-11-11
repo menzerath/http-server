@@ -269,16 +269,13 @@ public class HTTPThread implements Runnable {
 	 */
 	private String buildDirectoryListing(String path, File[] files) {
 		// Sort all files: first directories, then files
-		Arrays.sort(files, new Comparator<File>() {
-			@Override
-			public int compare(File f1, File f2) {
-				if (f1.isDirectory() && !f2.isDirectory()) {
-					return -1;
-				} else if (!f1.isDirectory() && f2.isDirectory()) {
-					return 1;
-				} else {
-					return f1.toString().compareToIgnoreCase(f2.toString());
-				}
+		Arrays.sort(files, (f1, f2) -> {
+			if (f1.isDirectory() && !f2.isDirectory()) {
+				return -1;
+			} else if (!f1.isDirectory() && f2.isDirectory()) {
+				return 1;
+			} else {
+				return f1.toString().compareToIgnoreCase(f2.toString());
 			}
 		});
 
