@@ -46,19 +46,9 @@ public class ConsoleWindow {
 		System.setOut(printStream);
 		System.setErr(printStream);
 
-		buttonExit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
-			}
-		});
+		buttonExit.addActionListener(e -> System.exit(0));
 
-		buttonClear.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				logOutput.setText("");
-			}
-		});
+		buttonClear.addActionListener(e -> logOutput.setText(""));
 	}
 
 	/**
