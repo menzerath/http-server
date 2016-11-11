@@ -24,10 +24,7 @@ This small HTTP-server currently supports those features:
 ### Download
 Download a current `HTTP-Server.jar`-file from [GitHub Releases](https://github.com/MarvinMenzerath/HTTP-Server/releases) or compile the application on your own using Maven.
 
-### Start
-Double-click the application to serve the current directory you are in or use the commandline to customize a few parts of the configuration.  
-Important: If a graphical environment is available and you did not deactivate the gui, the application will open a new window and show every log-entry in there.
-
+### Run
 ```
 $ java -jar HTTP-Server.jar --help
 ##############################################

@@ -21,9 +21,6 @@ public class Configuration {
 	@Option(name = "--logfile", aliases = {"-f"}, usage = "path and name of log-file (if wanted)")
 	private File loggerFile = null;
 
-	@Option(name = "--no-gui", aliases = {"-g"}, usage = "do not show gui (if possible)")
-	private boolean noGui = false;
-
 	private Logger logger = new Logger(this.loggerFile);
 
 	public boolean getPrintHelp() {
@@ -48,9 +45,5 @@ public class Configuration {
 
 	public Logger getLogger() {
 		return logger;
-	}
-
-	public boolean getShowGui() {
-		return !noGui;
 	}
 }

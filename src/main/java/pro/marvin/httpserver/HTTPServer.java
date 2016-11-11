@@ -3,9 +3,6 @@ package pro.marvin.httpserver;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import pro.marvin.util.ServerHelper;
-import pro.marvin.util.console.ConsoleWindow;
-
-import java.awt.*;
 
 public class HTTPServer {
 	private static Configuration config;
@@ -37,11 +34,6 @@ public class HTTPServer {
 			System.out.println("Error parsing arguments: " + e.getMessage());
 			parser.printUsage(System.out);
 			System.exit(1);
-		}
-
-		// show ConsoleWindow if possible and allowed
-		if (!GraphicsEnvironment.isHeadless() && config.getShowGui()) {
-			ConsoleWindow.show();
 		}
 
 		// start

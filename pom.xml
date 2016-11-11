@@ -26,12 +26,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>ideauidesigner-maven-plugin</artifactId>
-            <version>1.0-beta-1</version>
-        </dependency>
-
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
@@ -55,12 +49,6 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.6.0</version>
                 </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>ideauidesigner-maven-plugin</artifactId>
-                    <version>1.0-beta-1</version>
-                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -71,7 +59,6 @@
                     <minimizeJar>true</minimizeJar>
                     <artifactSet>
                         <includes>
-                            <include>com.intellij:forms_rt</include>
                             <include>args4j:args4j</include>
                         </includes>
                     </artifactSet>
@@ -104,18 +91,6 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>ideauidesigner-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <!--<goal>javac2</goal>-->
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
