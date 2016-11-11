@@ -1,4 +1,4 @@
-package eu.menzerath.util.logger;
+package pro.marvin.util.logger;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

@@ -1,4 +1,4 @@
-package eu.menzerath.util.console;
+package pro.marvin.util.console;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

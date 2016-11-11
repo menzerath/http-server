@@ -1,4 +1,4 @@
-package eu.menzerath.httpserver;
+package pro.marvin.httpserver;
 
 /**
  * This class contains resources used in error-pages and the directory-listing (CSS, Header, Footer, ...)

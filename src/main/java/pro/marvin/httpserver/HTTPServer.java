@@ -1,8 +1,8 @@
-package eu.menzerath.httpserver;
+package pro.marvin.httpserver;
 
-import eu.menzerath.util.ServerHelper;
-import eu.menzerath.util.console.ConsoleWindow;
-import eu.menzerath.util.logger.Logger;
+import pro.marvin.util.ServerHelper;
+import pro.marvin.util.console.ConsoleWindow;
+import pro.marvin.util.logger.Logger;
 
 import java.awt.*;
 import java.io.File;

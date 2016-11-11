@@ -1,4 +1,4 @@
-package eu.menzerath.util;
+package pro.marvin.util;
 
 import java.io.File;
 import java.text.DecimalFormat;

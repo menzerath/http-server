@@ -1,4 +1,4 @@
-package eu.menzerath.httpserver;
+package pro.marvin.httpserver;
 
 import java.io.IOException;
 import java.net.ServerSocket;
